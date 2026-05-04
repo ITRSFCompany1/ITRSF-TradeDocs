@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ITRSF TradeDocs</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f5f7fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 90%;
+            margin: auto;
+            margin-top: 40px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .search-box {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 300px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 15px;
+            margin-left: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .btn-search {
+            background: #2c7be5;
+            color: white;
+        }
+
+        .btn-recibo {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-comp {
+            background: #17a2b8;
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0px 2px 5px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #2c7be5;
+            color: white;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- 🔐 LOGIN -->
+<div id="loginBox" style="text-align:center; margin-top:50px;">
+    <h3>Iniciar sesión</h3>
+    <input type="text" id="user" placeholder="Usuario"><br><br>
+    <input type="password" id="pass" placeholder="Contraseña"><br><br>
+    <button onclick="login()">Entrar</button>
+</div>
+
+<!-- 🖥 SISTEMA -->
+<div id="sistema" style="display:none;">
+<div class="container">
+
+    <h2>Sistema Cámara de Comercio</h2>
+    <button onclick="logout()" style="float:right;">Cerrar sesión</button>
+
+    <div class="search-box">
+        <input type="text" id="busqueda" placeholder="Buscar afiliado...">
+        <button class="btn-search" onclick="buscar()">Buscar</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre Comercial</th>
+                <th>Nombre Legal</th>
+                <th>No. Afiliado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="resultados"></tbody>
+    </table>
+
+</div>
+</div>
+
+<script>
+
+async function login() {
+    const username = document.getElementById("user").value;
+    const password = document.getElementById("pass").value;
+
+    const res = await fetch("/login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `username=${username}&password=${password}`
+    });
+
+    const data = await res.json();
+
+    if (data.access_token) {
+        localStorage.setItem("token", data.access_token);
+
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("sistema").style.display = "block";
+    } else {
+        alert("Usuario o contraseña incorrectos");
+    }
+}
+
+async function buscar() {
+    const q = document.getElementById("busqueda").value;
+
+    if (!q.trim()) return;
+
+    const res = await fetch(`/buscar/?q=${q}`, {
+        headers: {
+            "Authorization": "Bearer " + localStorage.getItem("token")
+        }
+    });
+
+    const data = await res.json();
+
+    const tabla = document.getElementById("resultados");
+    tabla.innerHTML = "";
+
+    data.forEach(item => {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>${item.nombre_comercial}</td>
+            <td>${item.nombre_legal}</td>
+            <td>${item.num_afiliado}</td>
+            <td>
+                <button class="btn-recibo" onclick="generar('${item.num_afiliado}')">Recibo</button>
+                <button class="btn-comp" onclick="comprobante('${item.num_afiliado}')">Comprobante</button>
+            </td>
+        `;
+
+        tabla.appendChild(row);
+    });
+}
+
+function generar(id) {
+    const token = localStorage.getItem("token");
+
+    fetch(`/recibo/${id}`, {
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    })
+    .then(res => res.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        window.open(url);
+    });
+}
+
+function comprobante(id) {
+    const token = localStorage.getItem("token");
+
+    fetch(`/comprobante/${id}`, {
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    })
+    .then(res => res.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        window.open(url);
+    });
+}
+
+function logout() {
+    localStorage.removeItem("token");
+    location.reload();
+}
+
+window.onload = () => {
+    if (localStorage.getItem("token")) {
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("sistema").style.display = "block";
+    }
+};
+
+</script>
+
+<footer>
+    Sistema desarrollado por 
+    <a href="https://itrsfcompany1.github.io/ITRSF-Company/" target="_blank">
+        <strong>ITRSF Company</strong>
+    </a>
+</footer>
+
+</body>
+</html>

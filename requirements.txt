@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pandas
+fpdf
+sqlalchemy
+passlib[bcrypt]
+python-jose
+python-multipart
+openpyxl
