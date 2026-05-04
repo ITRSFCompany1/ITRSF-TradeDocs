@@ -3,12 +3,14 @@ from fastapi.responses import FileResponse
 from fastapi.security import OAuth2PasswordBearer
 from database import Base, engine, SessionLocal
 from models import User
-from passlib.hash import bcrypt
+from passlib.context import CryptContext
 from jose import JWTError, jwt
 import pandas as pd
 from fpdf import FPDF
 import os
 from datetime import datetime, timedelta
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # 🔐 CONFIG JWT
 SECRET_KEY = "super_secreto_itrsf"
@@ -218,7 +220,7 @@ def register(username: str = Form(...), password: str = Form(...)):
 
         user = User(
             username=username,
-            password=bcrypt.hash(password)
+            password=pwd_context.hash(password)
         )
 
         db.add(user)
@@ -237,7 +239,7 @@ def login(username: str = Form(...), password: str = Form(...)):
 
     user = db.query(User).filter(User.username == username).first()
 
-    if not user or not bcrypt.verify(password, user.password):
+    if not user or not pwd_context.verify(password, user.password):
         db.close()
         return {"error": "Credenciales incorrectas"}
 
