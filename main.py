@@ -10,14 +10,15 @@ from fpdf import FPDF
 import os
 from datetime import datetime, timedelta
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 # 🔐 CONFIG JWT
 SECRET_KEY = "super_secreto_itrsf"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+# 🔐 HASH SEGURO (ARREGLADO)
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def crear_token(data: dict):
     to_encode = data.copy()
@@ -83,130 +84,6 @@ def buscar(q: str = "", user: str = Depends(verificar_token)):
 
     return resultados
 
-# 🧾 RECIBO
-@app.get("/recibo/{num_afiliado}")
-def generar_recibo(num_afiliado: str, user: str = Depends(verificar_token)):
-
-    afiliado = next(
-        (d for d in data if str(d.get("num_afiliado")) == num_afiliado),
-        None
-    )
-
-    if not afiliado:
-        return {"error": "No encontrado"}
-
-    tipo = afiliado.get("tipo", "P")
-    costo = costos.get(tipo, 500)
-
-    folio = f"REC-{int(datetime.now().timestamp())}"
-
-    pdf = FPDF('P', 'mm', (140, 216))
-    pdf.add_page()
-
-    pdf.rect(5, 5, 130, 206)
-
-    pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 8, "CAMARA DE COMERCIO", 0, 1, "C")
-
-    pdf.set_font("Arial", size=10)
-    pdf.cell(0, 5, "RECIBO OFICIAL", 0, 1, "C")
-
-    pdf.cell(0, 5, datetime.now().strftime("%d/%m/%Y"), 0, 1, "R")
-    pdf.cell(0, 5, f"Folio: {folio}", 0, 1, "R")
-
-    pdf.ln(5)
-
-    pdf.cell(45, 6, "No. Afiliado:", 0, 0)
-    pdf.cell(0, 6, str(afiliado.get("num_afiliado","")), 0, 1)
-
-    pdf.cell(45, 6, "Nombre Comercial:", 0, 0)
-    pdf.multi_cell(0, 6, afiliado.get("nombre_comercial",""))
-
-    pdf.cell(45, 6, "Nombre Legal:", 0, 0)
-    pdf.multi_cell(0, 6, afiliado.get("nombre_legal",""))
-
-    pdf.cell(45, 6, "Tipo:", 0, 0)
-    pdf.cell(0, 6, tipo, 0, 1)
-
-    pdf.set_font("Arial", "B", 12)
-    pdf.cell(45, 8, "Costo:", 0, 0)
-    pdf.cell(0, 8, f"${costo}", 0, 1)
-    pdf.set_font("Arial", size=10)
-
-    pdf.ln(15)
-
-    pdf.cell(55, 6, "____________________", 0, 0, "C")
-    pdf.cell(10, 6, "", 0, 0)
-    pdf.cell(55, 6, "____________________", 0, 1, "C")
-
-    pdf.cell(55, 6, "Firma Afiliado", 0, 0, "C")
-    pdf.cell(10, 6, "", 0, 0)
-    pdf.cell(55, 6, "Óscar Alberto de Ávila Alfaro", 0, 1, "C")
-
-    pdf.cell(55, 6, "", 0, 0)
-    pdf.cell(10, 6, "", 0, 0)
-    pdf.cell(55, 6, "Presidente Cámara", 0, 1, "C")
-
-    archivo = os.path.join(BASE_DIR, f"recibo_{num_afiliado}.pdf")
-    pdf.output(archivo)
-
-    return FileResponse(archivo, media_type="application/pdf")
-
-# 📄 COMPROBANTE
-@app.get("/comprobante/{num_afiliado}")
-def generar_comprobante(num_afiliado: str, user: str = Depends(verificar_token)):
-
-    afiliado = next(
-        (d for d in data if str(d.get("num_afiliado")) == num_afiliado),
-        None
-    )
-
-    if not afiliado:
-        return {"error": "No encontrado"}
-
-    pdf = FPDF('P', 'mm', (140, 216))
-    pdf.add_page()
-
-    pdf.rect(5, 5, 130, 206)
-
-    pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 8, "CAMARA DE COMERCIO", 0, 1, "C")
-
-    pdf.set_font("Arial", size=10)
-    pdf.cell(0, 5, "COMPROBANTE", 0, 1, "C")
-
-    pdf.cell(0, 5, datetime.now().strftime("%d/%m/%Y"), 0, 1, "R")
-
-    pdf.ln(5)
-
-    pdf.cell(45, 6, "Nombre Comercial:", 0, 0)
-    pdf.multi_cell(0, 6, afiliado.get("nombre_comercial",""))
-
-    pdf.cell(45, 6, "Nombre Legal:", 0, 0)
-    pdf.multi_cell(0, 6, afiliado.get("nombre_legal",""))
-
-    pdf.cell(45, 6, "Direccion:", 0, 0)
-    pdf.multi_cell(0, 6, afiliado.get("direccion",""))
-
-    pdf.ln(15)
-
-    pdf.cell(55, 6, "____________________", 0, 0, "C")
-    pdf.cell(10, 6, "", 0, 0)
-    pdf.cell(55, 6, "____________________", 0, 1, "C")
-
-    pdf.cell(55, 6, "Firma Afiliado", 0, 0, "C")
-    pdf.cell(10, 6, "", 0, 0)
-    pdf.cell(55, 6, "Óscar Alberto de Ávila Alfaro", 0, 1, "C")
-
-    pdf.cell(55, 6, "", 0, 0)
-    pdf.cell(10, 6, "", 0, 0)
-    pdf.cell(55, 6, "Presidente Cámara", 0, 1, "C")
-
-    archivo = os.path.join(BASE_DIR, f"comprobante_{num_afiliado}.pdf")
-    pdf.output(archivo)
-
-    return FileResponse(archivo, media_type="application/pdf")
-
 # 👤 REGISTER
 @app.post("/register")
 def register(username: str = Form(...), password: str = Form(...)):
@@ -259,9 +136,104 @@ def cambiar_password(username: str = Form(...), nueva_password: str = Form(...))
         db.close()
         return {"error": "Usuario no encontrado"}
 
-    user.password = bcrypt.hash(nueva_password)
+    user.password = pwd_context.hash(nueva_password)
 
     db.commit()
     db.close()
 
     return {"msg": "Contraseña actualizada"}
+
+# 🧾 RECIBO
+@app.get("/recibo/{num_afiliado}")
+def generar_recibo(num_afiliado: str, user: str = Depends(verificar_token)):
+
+    afiliado = next(
+        (d for d in data if str(d.get("num_afiliado")) == num_afiliado),
+        None
+    )
+
+    if not afiliado:
+        return {"error": "No encontrado"}
+
+    tipo = afiliado.get("tipo", "P")
+    costo = costos.get(tipo, 500)
+
+    folio = f"REC-{int(datetime.now().timestamp())}"
+
+    pdf = FPDF('P', 'mm', (140, 216))
+    pdf.add_page()
+
+    pdf.rect(5, 5, 130, 206)
+
+    pdf.set_font("Arial", "B", 14)
+    pdf.cell(0, 8, "CAMARA DE COMERCIO", 0, 1, "C")
+
+    pdf.set_font("Arial", size=10)
+    pdf.cell(0, 5, "RECIBO OFICIAL", 0, 1, "C")
+
+    pdf.cell(0, 5, datetime.now().strftime("%d/%m/%Y"), 0, 1, "R")
+    pdf.cell(0, 5, f"Folio: {folio}", 0, 1, "R")
+
+    pdf.ln(5)
+
+    pdf.cell(45, 6, "No. Afiliado:", 0, 0)
+    pdf.cell(0, 6, str(afiliado.get("num_afiliado","")), 0, 1)
+
+    pdf.cell(45, 6, "Nombre Comercial:", 0, 0)
+    pdf.multi_cell(0, 6, afiliado.get("nombre_comercial",""))
+
+    pdf.cell(45, 6, "Nombre Legal:", 0, 0)
+    pdf.multi_cell(0, 6, afiliado.get("nombre_legal",""))
+
+    pdf.cell(45, 6, "Tipo:", 0, 0)
+    pdf.cell(0, 6, tipo, 0, 1)
+
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(45, 8, "Costo:", 0, 0)
+    pdf.cell(0, 8, f"${costo}", 0, 1)
+
+    archivo = f"recibo_{num_afiliado}.pdf"
+    pdf.output(archivo)
+
+    return FileResponse(archivo, media_type="application/pdf")
+
+# 📄 COMPROBANTE
+@app.get("/comprobante/{num_afiliado}")
+def generar_comprobante(num_afiliado: str, user: str = Depends(verificar_token)):
+
+    afiliado = next(
+        (d for d in data if str(d.get("num_afiliado")) == num_afiliado),
+        None
+    )
+
+    if not afiliado:
+        return {"error": "No encontrado"}
+
+    pdf = FPDF('P', 'mm', (140, 216))
+    pdf.add_page()
+
+    pdf.rect(5, 5, 130, 206)
+
+    pdf.set_font("Arial", "B", 14)
+    pdf.cell(0, 8, "CAMARA DE COMERCIO", 0, 1, "C")
+
+    pdf.set_font("Arial", size=10)
+    pdf.cell(0, 5, "COMPROBANTE", 0, 1, "C")
+
+    pdf.cell(0, 5, datetime.now().strftime("%d/%m/%Y"), 0, 1, "R")
+
+    pdf.ln(5)
+
+    pdf.cell(45, 6, "Nombre Comercial:", 0, 0)
+    pdf.multi_cell(0, 6, afiliado.get("nombre_comercial",""))
+
+    pdf.cell(45, 6, "Nombre Legal:", 0, 0)
+    pdf.multi_cell(0, 6, afiliado.get("nombre_legal",""))
+
+    pdf.cell(45, 6, "Direccion:", 0, 0)
+    pdf.multi_cell(0, 6, afiliado.get("direccion",""))
+
+    archivo = f"comprobante_{num_afiliado}.pdf"
+    pdf.output(archivo)
+
+    return FileResponse(archivo, media_type="application/pdf")
