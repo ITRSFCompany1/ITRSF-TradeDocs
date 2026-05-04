@@ -208,23 +208,27 @@ def generar_comprobante(num_afiliado: str, user: str = Depends(verificar_token))
 # 👤 REGISTER
 @app.post("/register")
 def register(username: str = Form(...), password: str = Form(...)):
-    db = SessionLocal()
+    try:
+        db = SessionLocal()
 
-    existing = db.query(User).filter(User.username == username).first()
-    if existing:
+        existing = db.query(User).filter(User.username == username).first()
+        if existing:
+            db.close()
+            return {"error": "Usuario ya existe"}
+
+        user = User(
+            username=username,
+            password=bcrypt.hash(password)
+        )
+
+        db.add(user)
+        db.commit()
         db.close()
-        return {"error": "Usuario ya existe"}
 
-    user = User(
-        username=username,
-        password=bcrypt.hash(password)
-    )
+        return {"msg": "Usuario creado"}
 
-    db.add(user)
-    db.commit()
-    db.close()
-
-    return {"msg": "Usuario creado"}
+    except Exception as e:
+        return {"error": str(e)}
 
 # 🔑 LOGIN
 @app.post("/login")
