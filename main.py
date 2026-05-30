@@ -200,19 +200,21 @@ def generar_recibo(num_afiliado: str, user: str = Depends(verificar_token)):
     pdf.cell(45, 8, "Costo:", 0, 0)
     pdf.cell(0, 8, f"${costo}", 0, 1)
     
-    pdf.ln(25)
+    pdf.ln(15)
 
     pdf.cell(60, 6, "____________________", 0, 0, "C")
     pdf.cell(10, 6, "", 0, 0)
     pdf.cell(60, 6, "____________________", 0, 1, "C")
+
+    pdf.cell(60, 6, "Firma del Presidente", 0, 0, "C")
+    pdf.cell(10, 6, "", 0, 0)
+    pdf.cell(60, 6, "Firma del Afiliado", 0, 1, "C")
 
     pdf.cell(60, 6, "Lic. Oscar Alberto De Avila Alfaro", 0, 0, "C")
     pdf.cell(10, 6, "", 0, 0)
     pdf.cell(60, 6, "", 0, 1, "C")
 
     pdf.cell(60, 6, "Presidente CANACO", 0, 0, "C")
-    pdf.cell(10, 6, "", 0, 0)
-    pdf.cell(60, 6, "", 0, 1, "C")
 
     archivo = f"recibo_{num_afiliado}.pdf"
     pdf.output(archivo)
@@ -257,18 +259,21 @@ def generar_comprobante(num_afiliado: str, user: str = Depends(verificar_token))
     pdf.cell(45, 6, "Direccion:", 0, 0)
     pdf.multi_cell(0, 6, afiliado.direccion or "")
 
+    pdf.ln(15)
 
     pdf.cell(60, 6, "____________________", 0, 0, "C")
     pdf.cell(10, 6, "", 0, 0)
     pdf.cell(60, 6, "____________________", 0, 1, "C")
+
+    pdf.cell(60, 6, "Firma del Presidente", 0, 0, "C")
+    pdf.cell(10, 6, "", 0, 0)
+    pdf.cell(60, 6, "Firma del Afiliado", 0, 1, "C")
 
     pdf.cell(60, 6, "Lic. Oscar Alberto De Avila Alfaro", 0, 0, "C")
     pdf.cell(10, 6, "", 0, 0)
     pdf.cell(60, 6, "", 0, 1, "C")
 
     pdf.cell(60, 6, "Presidente CANACO", 0, 0, "C")
-    pdf.cell(10, 6, "", 0, 0)
-    pdf.cell(60, 6, "", 0, 1, "C")
     
     
     archivo = f"comprobante_{num_afiliado}.pdf"
