@@ -90,6 +90,61 @@ def buscar(q: str = "", user: str = Depends(verificar_token)):
 
     return respuesta
 
+
+# Agregar afiliado
+@app.post("/agregar-afiliado")
+def agregar_afiliado(
+    nombre_comercial: str = Form(...),
+    nombre_legal: str = Form(...),
+    direccion: str = Form(...),
+    giro: str = Form(...),
+    rfc: str = Form(...),
+    num_afiliado: str = Form(...),
+    tipo: str = Form(...),
+    user: str = Depends(verificar_token)
+):
+
+    db = SessionLocal()
+
+    nuevo = Afiliado(
+        nombre_comercial=nombre_comercial,
+        nombre_legal=nombre_legal,
+        direccion=direccion,
+        giro=giro,
+        rfc=rfc,
+        num_afiliado=num_afiliado,
+        tipo=tipo
+    )
+
+    db.add(nuevo)
+    db.commit()
+    db.close()
+
+    return {"msg": "Afiliado agregado"}
+
+# eliminar afiliado
+@app.delete("/eliminar-afiliado/{id}")
+def eliminar_afiliado(
+    id: int,
+    user: str = Depends(verificar_token)
+):
+
+    db = SessionLocal()
+
+    afiliado = db.query(Afiliado).filter(
+        Afiliado.id == id
+    ).first()
+
+    if not afiliado:
+        db.close()
+        return {"error": "No encontrado"}
+
+    db.delete(afiliado)
+    db.commit()
+    db.close()
+
+    return {"msg": "Afiliado eliminado"}
+
 # 👤 REGISTER
 @app.post("/register")
 def register(username: str = Form(...), password: str = Form(...)):

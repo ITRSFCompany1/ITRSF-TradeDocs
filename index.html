@@ -112,9 +112,15 @@
     <button onclick="logout()" style="float:right;">Cerrar sesión</button>
 
     <div class="search-box">
-        <input type="text" id="busqueda" placeholder="Buscar afiliado...">
-        <button class="btn-search" onclick="buscar()">Buscar</button>
-    </div>
+    <input type="text" id="busqueda" placeholder="Buscar afiliado...">
+    <button class="btn-search" onclick="buscar()">Buscar</button>
+</div>
+
+<div style="text-align:center; margin-bottom:20px;">
+    <button class="btn-search" onclick="abrirModal()">
+        Nuevo Afiliado
+    </button>
+</div>
 
     <table>
         <thead>
@@ -220,6 +226,58 @@ function comprobante(id) {
     });
 }
 
+function abrirModal() {
+    document.getElementById("modalAfiliado").style.display = "block";
+}
+
+function cerrarModal() {
+    document.getElementById("modalAfiliado").style.display = "none";
+}
+
+async function guardarAfiliado() {
+
+    const formData = new FormData();
+
+    formData.append("nombre_comercial",
+        document.getElementById("nombre_comercial").value);
+
+    formData.append("nombre_legal",
+        document.getElementById("nombre_legal").value);
+
+    formData.append("direccion",
+        document.getElementById("direccion").value);
+
+    formData.append("giro",
+        document.getElementById("giro").value);
+
+    formData.append("rfc",
+        document.getElementById("rfc").value);
+
+    formData.append("num_afiliado",
+        document.getElementById("num_afiliado").value);
+
+    formData.append("tipo",
+        document.getElementById("tipo").value);
+
+    const token = localStorage.getItem("token");
+
+    const res = await fetch("/agregar-afiliado", {
+        method: "POST",
+        headers: {
+            "Authorization": "Bearer " + token
+        },
+        body: formData
+    });
+
+    const data = await res.json();
+
+    alert(data.msg);
+
+    cerrarModal();
+
+    buscar();
+}
+
 function logout() {
     localStorage.removeItem("token");
     location.reload();
@@ -233,6 +291,38 @@ window.onload = () => {
 };
 
 </script>
+
+<div id="modalAfiliado"
+     style="display:none;
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background:rgba(0,0,0,0.5);">
+
+    <div style="
+        background:white;
+        width:500px;
+        margin:50px auto;
+        padding:20px;
+        border-radius:10px;">
+
+        <h3>Nuevo Afiliado</h3>
+
+        <input id="nombre_comercial" placeholder="Nombre Comercial"><br><br>
+        <input id="nombre_legal" placeholder="Nombre Legal"><br><br>
+        <input id="direccion" placeholder="Dirección"><br><br>
+        <input id="giro" placeholder="Giro"><br><br>
+        <input id="rfc" placeholder="RFC"><br><br>
+        <input id="num_afiliado" placeholder="No. Afiliado"><br><br>
+        <input id="tipo" placeholder="Tipo"><br><br>
+
+        <button onclick="guardarAfiliado()">Guardar</button>
+        <button onclick="cerrarModal()">Cancelar</button>
+
+    </div>
+</div>
 
 <footer>
     Sistema desarrollado por 
