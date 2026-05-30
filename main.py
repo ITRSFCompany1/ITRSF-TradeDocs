@@ -8,11 +8,15 @@ from jose import JWTError, jwt
 from fpdf import FPDF
 import os
 from datetime import datetime, timedelta
+from fastapi.staticfiles import StaticFiles
 
 # 🔐 CONFIG JWT
 SECRET_KEY = "super_secreto_itrsf"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
+# 📁 SERVIR ARCHIVOS ESTÁTICOS
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
