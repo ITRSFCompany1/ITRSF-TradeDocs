@@ -15,8 +15,13 @@ SECRET_KEY = "super_secreto_itrsf"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
+# 🚀 APP
+app = FastAPI()
+Base.metadata.create_all(bind=engine)
+
 # 📁 SERVIR ARCHIVOS ESTÁTICOS
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
@@ -42,9 +47,7 @@ def verificar_token(token: str = Depends(oauth2_scheme)):
     except JWTError:
         raise HTTPException(status_code=401, detail="Token inválido")
 
-# 🚀 APP
-app = FastAPI()
-Base.metadata.create_all(bind=engine)
+
 
 # 📁 RUTA BASE
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
