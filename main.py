@@ -5,7 +5,6 @@ from database import Base, engine, SessionLocal
 from models import User
 from passlib.context import CryptContext
 from jose import JWTError, jwt
-import pandas as pd
 from fpdf import FPDF
 import os
 from datetime import datetime, timedelta
@@ -46,15 +45,9 @@ Base.metadata.create_all(bind=engine)
 # 📁 RUTA BASE
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# 📊 CARGAR EXCEL
-excel_path = os.path.join(BASE_DIR, "afiliados_limpio.xlsx")
-df = pd.read_excel(excel_path)
-df = df.fillna("")
-data = df.to_dict(orient="records")
-
 # 💰 COSTOS
 costos = {
-    "P": 500,
+    "P": 600,
     "M": 800,
     "G": 1200
 }
