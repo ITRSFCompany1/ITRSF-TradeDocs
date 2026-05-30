@@ -2,7 +2,7 @@ from fastapi import FastAPI, Form, Depends, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.security import OAuth2PasswordBearer
 from database import Base, engine, SessionLocal
-from models import User
+from models import User, Afiliado
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from fpdf import FPDF
@@ -64,18 +64,31 @@ def buscar(q: str = "", user: str = Depends(verificar_token)):
     if not q.strip():
         return []
 
-    q = q.lower()
+    db = SessionLocal()
 
-    resultados = [
-        d for d in data
-        if (
-            q in str(d.get("nombre_comercial", "")).lower()
-            or q in str(d.get("nombre_legal", "")).lower()
-            or q in str(d.get("num_afiliado", "")).lower()
-        )
-    ]
+    resultados = db.query(Afiliado).filter(
+        (Afiliado.nombre_comercial.ilike(f"%{q}%")) |
+        (Afiliado.nombre_legal.ilike(f"%{q}%")) |
+        (Afiliado.num_afiliado.ilike(f"%{q}%"))
+    ).all()
 
-    return resultados
+    respuesta = []
+
+    for a in resultados:
+        respuesta.append({
+            "id": a.id,
+            "nombre_comercial": a.nombre_comercial,
+            "nombre_legal": a.nombre_legal,
+            "direccion": a.direccion,
+            "giro": a.giro,
+            "rfc": a.rfc,
+            "num_afiliado": a.num_afiliado,
+            "tipo": a.tipo
+        })
+
+    db.close()
+
+    return respuesta
 
 # 👤 REGISTER
 @app.post("/register")
@@ -140,15 +153,17 @@ def cambiar_password(username: str = Form(...), nueva_password: str = Form(...))
 @app.get("/recibo/{num_afiliado}")
 def generar_recibo(num_afiliado: str, user: str = Depends(verificar_token)):
 
-    afiliado = next(
-        (d for d in data if str(d.get("num_afiliado")) == num_afiliado),
-        None
-    )
+    db = SessionLocal()
+
+    afiliado = db.query(Afiliado).filter(
+        Afiliado.num_afiliado == num_afiliado
+    ).first()
 
     if not afiliado:
+        db.close()
         return {"error": "No encontrado"}
 
-    tipo = afiliado.get("tipo", "P")
+    tipo = afiliado.tipo or "P"
     costo = costos.get(tipo, 500)
 
     folio = f"REC-{int(datetime.now().timestamp())}"
@@ -170,13 +185,13 @@ def generar_recibo(num_afiliado: str, user: str = Depends(verificar_token)):
     pdf.ln(5)
 
     pdf.cell(45, 6, "No. Afiliado:", 0, 0)
-    pdf.cell(0, 6, str(afiliado.get("num_afiliado","")), 0, 1)
+    pdf.cell(0, 6, str(afiliado.num_afiliado), 0, 1)
 
     pdf.cell(45, 6, "Nombre Comercial:", 0, 0)
-    pdf.multi_cell(0, 6, afiliado.get("nombre_comercial",""))
+    pdf.multi_cell(0, 6, afiliado.nombre_comercial)
 
     pdf.cell(45, 6, "Nombre Legal:", 0, 0)
-    pdf.multi_cell(0, 6, afiliado.get("nombre_legal",""))
+    pdf.multi_cell(0, 6, afiliado.nombre_legal)
 
     pdf.cell(45, 6, "Tipo:", 0, 0)
     pdf.cell(0, 6, tipo, 0, 1)
@@ -194,12 +209,14 @@ def generar_recibo(num_afiliado: str, user: str = Depends(verificar_token)):
 @app.get("/comprobante/{num_afiliado}")
 def generar_comprobante(num_afiliado: str, user: str = Depends(verificar_token)):
 
-    afiliado = next(
-        (d for d in data if str(d.get("num_afiliado")) == num_afiliado),
-        None
-    )
+    db = SessionLocal()
+
+    afiliado = db.query(Afiliado).filter(
+        Afiliado.num_afiliado == num_afiliado
+    ).first()
 
     if not afiliado:
+        db.close()
         return {"error": "No encontrado"}
 
     pdf = FPDF('P', 'mm', (140, 216))
