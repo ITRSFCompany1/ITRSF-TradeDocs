@@ -235,13 +235,13 @@ def generar_comprobante(num_afiliado: str, user: str = Depends(verificar_token))
     pdf.ln(5)
 
     pdf.cell(45, 6, "Nombre Comercial:", 0, 0)
-    pdf.multi_cell(0, 6, afiliado.get("nombre_comercial",""))
+    pdf.multi_cell(0, 6, afiliado.nombre_comercial or "")
 
     pdf.cell(45, 6, "Nombre Legal:", 0, 0)
-    pdf.multi_cell(0, 6, afiliado.get("nombre_legal",""))
+    pdf.multi_cell(0, 6, afiliado.nombre_legal or "")
 
     pdf.cell(45, 6, "Direccion:", 0, 0)
-    pdf.multi_cell(0, 6, afiliado.get("direccion",""))
+    pdf.multi_cell(0, 6, afiliado.direccion or "")
 
     archivo = f"comprobante_{num_afiliado}.pdf"
     pdf.output(archivo)
