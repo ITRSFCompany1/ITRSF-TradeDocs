@@ -232,7 +232,6 @@ def generar_recibo(num_afiliado: str, user: str = Depends(verificar_token)):
 
     pdf = FPDF('P', 'mm', (140, 216))
     pdf.add_page()
-    pdf.image("static/logo.png", 10, 10, 25)
 
     pdf.rect(5, 5, 130, 206)
 
@@ -311,7 +310,6 @@ def generar_comprobante(num_afiliado: str, user: str = Depends(verificar_token))
 
     pdf = FPDF('P', 'mm', (140, 216))
     pdf.add_page()
-    pdf.image("static/logo.png", 10, 10, 25)
 
     pdf.rect(5, 5, 130, 206)
 
