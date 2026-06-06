@@ -232,35 +232,47 @@ def generar_recibo(num_afiliado: str, user: str = Depends(verificar_token)):
 
     pdf = FPDF('P', 'mm', (140, 216))
     pdf.add_page()
+    pdf.image("static/logo.png", 10, 10, 25)
 
     pdf.rect(5, 5, 130, 206)
 
-    pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 8, "CAMARA DE COMERCIO", 0, 1, "C")
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(0, 5, "CAMARA NACIONAL DE COMERCIO", 0, 1, "C")
+    pdf.cell(0, 5, "SERVICIOS Y TURISMO", 0, 1, "C")
 
-    pdf.set_font("Arial", size=10)
-    pdf.cell(0, 5, "RECIBO OFICIAL", 0, 1, "C")
-
-    pdf.cell(0, 5, datetime.now().strftime("%d/%m/%Y"), 0, 1, "R")
-    pdf.cell(0, 5, f"Folio: {folio}", 0, 1, "R")
+    pdf.set_font("Arial", "B", 10)
+    pdf.cell(0, 5, "RECIBO PROVISIONAL", 0, 1, "C")
 
     pdf.ln(5)
 
-    pdf.cell(45, 6, "No. Afiliado:", 0, 0)
+    pdf.set_font("Arial", "", 10)
+
+    pdf.cell(45, 6, "No. DE AFILIACION:", 0, 0)
     pdf.cell(0, 6, str(afiliado.num_afiliado), 0, 1)
 
-    pdf.cell(45, 6, "Nombre Comercial:", 0, 0)
-    pdf.multi_cell(0, 6, afiliado.nombre_comercial)
+    pdf.cell(45, 6, "FECHA:", 0, 0)
+    pdf.cell(0, 6, datetime.now().strftime("%d/%m/%Y"), 0, 1)
 
-    pdf.cell(45, 6, "Nombre Legal:", 0, 0)
-    pdf.multi_cell(0, 6, afiliado.nombre_legal)
+    pdf.cell(45, 6, "RFC:", 0, 0)
+    pdf.cell(0, 6, afiliado.rfc or "", 0, 1)
 
-    pdf.cell(45, 6, "Tipo:", 0, 0)
-    pdf.cell(0, 6, tipo, 0, 1)
+    pdf.ln(3)
 
-    pdf.set_font("Arial", "B", 12)
-    pdf.cell(45, 8, "Costo:", 0, 0)
-    pdf.cell(0, 8, f"${costo}", 0, 1)
+    pdf.cell(45, 6, "RECIBIMOS DE:", 0, 0)
+    pdf.multi_cell(0, 6, afiliado.nombre_legal or "")
+
+    pdf.cell(45, 6, "DOMICILIO:", 0, 0)
+    pdf.multi_cell(0, 6, afiliado.direccion or "")
+
+    pdf.cell(45, 6, "LA CANTIDAD:", 0, 0)
+    pdf.cell(0, 6, f"${costo}", 0, 1)
+
+    pdf.cell(45, 6, "POR CONCEPTO DE:", 0, 0)
+    pdf.multi_cell(
+        0,
+        6,
+        f"PAGO DE AFILIACION A CAMARA NACIONAL DE COMERCIO {datetime.now().year}"
+    )
     
     pdf.ln(15)
 
@@ -299,28 +311,38 @@ def generar_comprobante(num_afiliado: str, user: str = Depends(verificar_token))
 
     pdf = FPDF('P', 'mm', (140, 216))
     pdf.add_page()
+    pdf.image("static/logo.png", 10, 10, 25)
 
     pdf.rect(5, 5, 130, 206)
 
-    pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 8, "CAMARA DE COMERCIO", 0, 1, "C")
-
-    pdf.set_font("Arial", size=10)
-    pdf.cell(0, 5, "COMPROBANTE", 0, 1, "C")
-
-    pdf.cell(0, 5, datetime.now().strftime("%d/%m/%Y"), 0, 1, "R")
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(0, 5, "CEDULA DE AFILIACION", 0, 1, "C")
 
     pdf.ln(5)
 
-    pdf.cell(45, 6, "Nombre Comercial:", 0, 0)
+    pdf.set_font("Arial", "", 10)
+
+    pdf.cell(45, 6, "No. AFILIACION:", 0, 0)
+    pdf.cell(0, 6, afiliado.num_afiliado or "", 0, 1)
+
+    pdf.cell(45, 6, "FECHA:", 0, 0)
+    pdf.cell(0, 6, datetime.now().strftime("%d/%m/%Y"), 0, 1)
+
+    pdf.cell(45, 6, "RFC:", 0, 0)
+    pdf.cell(0, 6, afiliado.rfc or "", 0, 1)
+
+    pdf.cell(45, 6, "NOMBRE COMERCIAL:", 0, 0)
     pdf.multi_cell(0, 6, afiliado.nombre_comercial or "")
 
-    pdf.cell(45, 6, "Nombre Legal:", 0, 0)
+    pdf.cell(45, 6, "PROPIETARIO:", 0, 0)
     pdf.multi_cell(0, 6, afiliado.nombre_legal or "")
 
-    pdf.cell(45, 6, "Direccion:", 0, 0)
+    pdf.cell(45, 6, "DIRECCION:", 0, 0)
     pdf.multi_cell(0, 6, afiliado.direccion or "")
 
+    pdf.cell(45, 6, "GIRO:", 0, 0)
+    pdf.multi_cell(0, 6, afiliado.giro or "")
+    
     pdf.ln(15)
 
     pdf.cell(60, 6, "____________________", 0, 0, "C")
